@@ -1,6 +1,7 @@
+use crate::command::{PreparedCommand, InputPreparer};
+use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time;
-use std::sync::{Arc, Mutex};
 
 pub struct ThreadsData {
     pub chars_to_process: Vec<char>,
@@ -18,15 +19,22 @@ impl ThreadsData {
     }
 }
 
-pub fn thread_worker(data: Arc<Mutex<ThreadsData>>) {
+pub fn thread_worker(
+        data: Arc<Mutex<ThreadsData>>,
+        command: PreparedCommand,
+        input_preparer: InputPreparer) {
+    let mut prefix = String::new();
     loop {
         let popped_char;
         {
             let mut data = data.lock().unwrap();
             popped_char = data.chars_to_process.pop();
+            if data.found_password_prefix.len() > prefix.len() {
+                prefix = data.found_password_prefix.clone();
+            }
         }
 
-        let char = match popped_char {
+        let popped_char = match popped_char {
             Some(char) => char,
             _ => {
                 thread::sleep(time::Duration::from_millis(10));
@@ -35,5 +43,8 @@ pub fn thread_worker(data: Arc<Mutex<ThreadsData>>) {
         };
 
         // Process the found char
+        prefix.push(popped_char);
+        command.run(&prefix);
+        prefix.pop();
     }
 }

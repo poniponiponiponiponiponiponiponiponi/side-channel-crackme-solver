@@ -1,19 +1,28 @@
 use std::process::{Command, Stdio};
 use std::io::Write;
 
+#[derive(Clone)]
 pub struct PreparedCommand {
     pub command_prefix: Vec<String>,
     pub command_postfix: Vec<String>,
     pub stdin: bool,
 }
 
+#[derive(Clone)]
+pub struct InputPreparer {
+    pub input_prefix: String,
+    pub input_postfix: String,
+    pub length: usize,
+    pub padding_char: char,
+}
+
 impl PreparedCommand {
     pub fn new(
-        program_path: &String,
-        method: &String,
-        iterations: u32,
-        stdin: bool,
-        ) -> PreparedCommand {
+            program_path: &String,
+            method: &String,
+            iterations: u32,
+            stdin: bool,
+            ) -> PreparedCommand {
         let command_prefix = format!("perf stat -r {iterations} -x, \
                                      -e {method}:u {program_path}");
         let command_prefix = command_prefix.split(' ').map(|s| {
@@ -40,7 +49,7 @@ impl PreparedCommand {
         split
     }
 
-    pub fn run(self, input: &String) -> String {
+    pub fn run(&self, input: &String) -> String {
         let split = self.get_cmd_split(input);
 
         let mut perf_command;
@@ -64,5 +73,21 @@ impl PreparedCommand {
             .wait_with_output()
             .expect("Failed to read the output");
         String::from_utf8(output.stdout).expect("Failed to convert to utf8")
+    }
+}
+
+impl InputPreparer {
+    pub fn new(
+            input_prefix: String,
+            input_postfix: String,
+            length: usize,
+            padding_char: char
+            ) -> InputPreparer {
+        InputPreparer {
+            input_prefix,
+            input_postfix,
+            length,
+            padding_char,
+        }
     }
 }

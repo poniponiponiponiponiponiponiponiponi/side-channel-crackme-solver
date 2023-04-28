@@ -5,6 +5,7 @@ use std::sync::{Arc, Mutex};
 use side_channel_crackme_solver::workers;
 use side_channel_crackme_solver::workers::ThreadsData;
 use side_channel_crackme_solver::args::Args;
+use side_channel_crackme_solver::command::{PreparedCommand, InputPreparer};
 
 fn main() {
     let args = Args::parse();
@@ -14,9 +15,25 @@ fn main() {
 pub fn main_loop(args: Args) {
     let mut thread_workers = vec![];
     let data = Arc::new(Mutex::new(ThreadsData::new()));
+    let input_preparer = InputPreparer::new(
+        args.input_beg.clone(),
+        args.input_end.clone(),
+        args.length,
+        args.padding,
+    );
+    let prepared_command = PreparedCommand::new(
+        &args.exe_path,
+        &"instruction".to_string(),
+        args.iterations,
+        args.stdin
+    );
     for _ in 0..args.threads {
         let data = Arc::clone(&data);
-        thread_workers.push(thread::spawn(|| workers::thread_worker(data)));
+        let prepared_command = prepared_command.clone();
+        let input_preparer = input_preparer.clone();
+        thread_workers.push(thread::spawn(
+                move || workers::thread_worker(data, prepared_command, input_preparer)
+        ));
     }
 
     'outer: loop {
