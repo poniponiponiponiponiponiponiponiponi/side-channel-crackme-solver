@@ -3,10 +3,6 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
-    /// String the password starts with.
-    #[arg(long, default_value = "")]
-    pub starts_with: String,
-
     /// String the input starts start with.
     #[arg(long, default_value = "")]
     pub input_beg: String,
@@ -15,7 +11,11 @@ pub struct Args {
     #[arg(long, default_value = "")]
     pub input_end: String,
 
-    /// String the password ends with.
+    /// String the password should start with. If it doesn't then execution is aborted.
+    #[arg(long, default_value = "")]
+    pub starts_with: String,
+
+    /// String the password should end with. If it doesn't then execution is aborted.
     #[arg(long, default_value = "")]
     pub ends_with: String,
 
@@ -48,4 +48,8 @@ pub struct Args {
     /// try to find it first instead.
     #[arg(short, long, default_value_t = 0)]
     pub length: usize,
+
+    /// Character used for padding so the char has the correct length.
+    #[arg(long, default_value_t = 'A')]
+    pub padding: char,
 }
