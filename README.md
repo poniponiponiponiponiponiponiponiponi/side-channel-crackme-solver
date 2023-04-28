@@ -1,7 +1,7 @@
 # VERY MUCH WORK IN PROGRESS, I'LL PROBABLY FINISH WRITING THIS PROGRAM NEXT WEEK.
 # IF YOU SEE THIS THANK YOU FOR READING THIS! <3
 
-# side-channel-attack-ez-crackme-solver
+# side-channel-crackme-solver
 An automatic solver for easy crackmes using various side-channel attacks. It's
 not anything serious but may be able to solve easy crackmes in highschool level
 capture the flag competitions like in the example below. The idea is based on
