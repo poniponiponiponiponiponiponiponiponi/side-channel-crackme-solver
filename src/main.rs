@@ -8,13 +8,22 @@ use side_channel_crackme_solver::args::Args;
 use side_channel_crackme_solver::command::{PreparedCommand, InputPreparer};
 
 fn main() {
-    let args = Args::parse();
+    let mut args = Args::parse();
+    if args.alphabet == "" {
+        for i in 0..=0xff {
+            args.alphabet.push(i as u8 as char);
+        }
+    }
     main_loop(args);
 }
 
 pub fn main_loop(args: Args) {
     let mut thread_workers = vec![];
     let data = Arc::new(Mutex::new(ThreadsData::new()));
+    {
+        let mut data = data.lock().unwrap();
+        data.chars_to_process = args.alphabet.chars().collect();
+    }
     let input_preparer = InputPreparer::new(
         args.input_beg.clone(),
         args.input_end.clone(),
@@ -23,7 +32,7 @@ pub fn main_loop(args: Args) {
     );
     let prepared_command = PreparedCommand::new(
         &args.exe_path,
-        &"instruction".to_string(),
+        &"instructions".to_string(),
         args.iterations,
         args.stdin
     );
@@ -58,8 +67,20 @@ pub fn main_loop(args: Args) {
         }
 
         // Process the found chars
+        {
+            let mut data = data.lock().unwrap();
+            data.processed_chars.sort();
+            let &(_, char) = data.processed_chars.last().unwrap();
+            data.found_password_prefix.push(char);
+            data.processed_chars = Vec::new();
+            data.chars_to_process = args.alphabet.chars().collect();
+        }
     }
 
+    {
+        let data = data.lock().unwrap();
+        println!("found: {}", data.found_password_prefix);
+    }
     for thread in thread_workers {
         thread.join().unwrap();
     }

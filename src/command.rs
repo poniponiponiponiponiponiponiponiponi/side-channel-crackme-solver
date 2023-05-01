@@ -58,6 +58,7 @@ impl PreparedCommand {
                 .args(&split[1..])
                 .stdin(Stdio::piped())
                 .stdout(Stdio::piped())
+                .stderr(Stdio::piped())
                 .spawn()
                 .expect("Failed to run perf command");
             let mut stdin = perf_command.stdin.take().expect("Failed to open stdin");
@@ -72,7 +73,7 @@ impl PreparedCommand {
         let output = perf_command
             .wait_with_output()
             .expect("Failed to read the output");
-        String::from_utf8(output.stdout).expect("Failed to convert to utf8")
+        String::from_utf8(output.stderr).expect("Failed to convert to utf8")
     }
 }
 
@@ -90,4 +91,21 @@ impl InputPreparer {
             padding_char,
         }
     }
+
+    pub fn prepare(&self, password_prefix: &String) -> String {
+        let substract = self.input_postfix.len() + self.input_prefix.len() +
+            password_prefix.len();
+        if self.length >= substract {
+            let padding_len = self.length - substract;
+            let padding = self.padding_char.to_string().repeat(padding_len);
+            self.input_prefix.clone() + password_prefix + &padding + &self.input_postfix
+        } else {
+            panic!("too long?");
+        }
+    }
+}
+
+pub fn parse_output(output: &String) -> i128 {
+    println!("AAAA {output}");
+    output.split(",").nth(0).unwrap().parse().unwrap()
 }

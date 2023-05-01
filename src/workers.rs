@@ -1,11 +1,12 @@
 use crate::command::{PreparedCommand, InputPreparer};
+use crate::command;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time;
 
 pub struct ThreadsData {
     pub chars_to_process: Vec<char>,
-    pub processed_chars: Vec<(i32, char)>,
+    pub processed_chars: Vec<(i64, char)>,
     pub found_password_prefix: String,
 }
 
@@ -44,7 +45,12 @@ pub fn thread_worker(
 
         // Process the found char
         prefix.push(popped_char);
-        command.run(&prefix);
+        let val = command::parse_output(&command.run(&input_preparer.prepare(&prefix)));
         prefix.pop();
+
+        {
+            let mut data = data.lock().unwrap();
+            data.processed_chars.push((val as i64, popped_char));
+        }
     }
 }
