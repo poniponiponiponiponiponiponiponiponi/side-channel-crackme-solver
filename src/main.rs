@@ -10,7 +10,7 @@ use side_channel_crackme_solver::command::{PreparedCommand, InputPreparer};
 fn main() {
     let mut args = Args::parse();
     if args.alphabet == "" {
-        for i in 0..=0xff {
+        for i in 1..0x80 {
             args.alphabet.push(i as u8 as char);
         }
     }
@@ -56,6 +56,7 @@ pub fn main_loop(args: Args) {
                     break 'outer;
                 }
                 chars_left = data.chars_to_process.len();
+                println!("{chars_left}")
             }
 
             if chars_left > 0 {
@@ -74,6 +75,8 @@ pub fn main_loop(args: Args) {
             data.found_password_prefix.push(char);
             data.processed_chars = Vec::new();
             data.chars_to_process = args.alphabet.chars().collect();
+
+            println!("found: {}", data.found_password_prefix);
         }
     }
 
