@@ -100,10 +100,6 @@ impl InputPreparer {
             let padding = self.padding_char.to_string().repeat(padding_len);
             self.input_prefix.clone() + password_prefix + &padding + &self.input_postfix
         } else {
-            println!("sub: {substract}");
-            println!("{}", self.input_postfix.len());
-            println!("{}", self.input_prefix.len());
-            println!("{}", password_prefix.len());
             panic!("too long?");
         }
     }

@@ -45,18 +45,13 @@ pub fn main_loop(args: Args) {
         ));
     }
 
-    'outer: loop {
+    loop {
         // Wait till there are no chars left to process
         loop {
             let chars_left;
             {
                 let data = data.lock().unwrap();
-                // If password length is satisfied then quit.
-                if data.found_password_prefix.len() == args.length {
-                    break 'outer;
-                }
                 chars_left = data.chars_to_process.len();
-                println!("{chars_left}")
             }
 
             if chars_left > 0 {
@@ -73,6 +68,15 @@ pub fn main_loop(args: Args) {
             data.processed_chars.sort();
             let &(_, char) = data.processed_chars.last().unwrap();
             data.found_password_prefix.push(char);
+
+            // If password length is satisfied then quit.
+            let prefix_len = input_preparer.input_prefix.len();
+            let postfix_len = input_preparer.input_postfix.len();
+            let input_len = prefix_len + data.found_password_prefix.len() +
+                postfix_len;
+            if input_len == input_preparer.length {
+                break;
+            }
             data.processed_chars = Vec::new();
             data.chars_to_process = args.alphabet.chars().collect();
 
