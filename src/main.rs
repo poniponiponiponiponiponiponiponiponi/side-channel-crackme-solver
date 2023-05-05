@@ -6,14 +6,34 @@ use side_channel_crackme_solver::workers;
 use side_channel_crackme_solver::workers::ThreadsData;
 use side_channel_crackme_solver::args::Args;
 use side_channel_crackme_solver::command::{PreparedCommand, InputPreparer};
+use log::info;
+use env_logger;
 
 fn main() {
     let mut args = Args::parse();
+
+    // Logging turned on by default cuz usually
+    // I want to actually see what the program is doing
+    if !args.quiet {
+        let default = env_logger::Env::default()
+            .filter_or(env_logger::DEFAULT_FILTER_ENV, "info");
+        env_logger::init_from_env(default);
+    }
+    info!("Starting solver...");
+
     if args.alphabet == "" {
         for i in 1..0x80 {
             args.alphabet.push(i as u8 as char);
         }
+        info!("No alphabet given. Use the default one: ascii values from 0x01 to 0x7f.");
     }
+    
+    if args.threads == 0 {
+        args.threads = thread::available_parallelism().unwrap().get();
+        info!("No number of threads given. Use the detected recommended number instead: {}",
+              args.threads);
+    }
+
     main_loop(args);
 }
 
@@ -55,7 +75,8 @@ pub fn main_loop(args: Args) {
             }
 
             if chars_left > 0 {
-                thread::sleep(time::Duration::from_millis(100));
+                info!("Number of chars left in the queue: {}", chars_left);
+                thread::sleep(time::Duration::from_millis(250));
                 continue;
             } else {
                 break;
@@ -80,13 +101,19 @@ pub fn main_loop(args: Args) {
             data.processed_chars = Vec::new();
             data.chars_to_process = args.alphabet.chars().collect();
 
-            println!("found: {}", data.found_password_prefix);
+            if !args.quiet {
+                println!("Currently found password: {}", data.found_password_prefix);
+            }
         }
     }
 
     {
         let data = data.lock().unwrap();
-        println!("found: {}", data.found_password_prefix);
+        if !args.quiet {
+            println!("Found: {}", data.found_password_prefix);
+        } else {
+            print!("{}", data.found_password_prefix);
+        }
     }
     for thread in thread_workers {
         thread.join().unwrap();

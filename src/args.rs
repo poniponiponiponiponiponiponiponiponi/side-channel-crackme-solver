@@ -24,21 +24,21 @@ pub struct Args {
     #[arg(long, default_value = "")]
     pub alphabet: String,
 
-    /// Use only printable characters from the alphabet.
-    #[arg(short, long, default_value_t = false)]
-    pub printable: bool,
-
     /// Number of worker threads (so the actual number of threads is threads+1).
-    #[arg(short, long, default_value_t = 3)]
-    pub threads: u32,
+    #[arg(short, long, default_value_t = 0)]
+    pub threads: usize,
 
     /// Number of program runs per checked password.
-    #[arg(short, long, default_value_t = 10)]
+    #[arg(short, long, default_value_t = 32)]
     pub iterations: u32,
     
     /// Pass input to stdin. If not use argv instead.
     #[arg(short, long, default_value_t = true)]
     pub stdin: bool,
+
+    /// Quiet option for easier output parsing/piping.
+    #[arg(short, long, default_value_t = false)]
+    pub quiet: bool,
 
     /// File path to the executable.
     #[arg(index=1)]

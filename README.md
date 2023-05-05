@@ -1,15 +1,19 @@
-# It kinda works right now but still requires a lot of polishing.
+## Note
+The program should be usable but there's still a lot to improve.
 
 # side-channel-crackme-solver
-An automatic solver for easy crackmes using various side-channel attacks. It's
-not anything serious but may be able to solve easy crackmes in highschool level
-capture the flag competitions like in the example below. The idea is based on
-[a blog post by Gynvael Coldwind](https://gynvael.coldwind.pl/?lang=en&id=763)
-and Julien Voisin's article "Crackme Solving for the Lazies" from of the
-magazine "Paged Out! #1".
+An automatic multithreaded solver for easy crackmes using various side-channel
+attacks. It's not anything serious but may be able to solve easy crackmes in
+highschool level capture the flag competitions like in the example below. The
+idea is based on [a blog post by Gynvael
+Coldwind](https://gynvael.coldwind.pl/?lang=en&id=763) and Julien Voisin's
+article "Crackme Solving for the Lazies" from of the magazine "Paged Out! #1".
 
-# Usage
-## Example Crackme
+## Dependencies
+The program uses `perf` underneath, so make sure you have it installed and working.
+
+## Usage
+### Example Crackme
 ```c
 // Simple program that I use for testing.
 // Compile with `gcc test.c`
@@ -49,5 +53,5 @@ int main() {
 
 To run the program on this crackme run:
 ```
-cargo run -- --input-end $'\n' -l 17 -t 4 ./a.out
+cargo run -- --input-end $'\n' -l 17 ./a.out
 ```
