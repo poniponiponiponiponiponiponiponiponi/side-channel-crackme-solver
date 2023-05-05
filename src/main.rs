@@ -90,6 +90,41 @@ pub fn main_loop(args: Args) {
             let &(_, char) = data.processed_chars.last().unwrap();
             data.found_password_prefix.push(char);
 
+            // Confirm starts_with and ends_with
+            if args.starts_with != "" {
+                let compare_to = std::cmp::min(
+                    data.found_password_prefix.len(),
+                    args.starts_with.len()
+                    );
+                if &data.found_password_prefix[..compare_to] != &args.starts_with[..compare_to] {
+                    if !args.quiet {
+                        println!("Found password and starts_with argument don't match-up");
+                        println!("Found password: {}", data.found_password_prefix);
+                        println!("starts_with: {}", args.starts_with);
+                        println!("Ending execution...");
+                        return;
+                    }
+                }
+            }
+
+            if args.ends_with != "" {
+                let end_start_idx = args.length - args.ends_with.len()-1;
+                if data.found_password_prefix.len() > end_start_idx {
+                    let postfix = &data.found_password_prefix[end_start_idx..];
+                    let ends_with = &args.ends_with[..postfix.len()];
+                    println!("DEBUG: {} {}", postfix, ends_with);
+                    if postfix != ends_with {
+                        if !args.quiet {
+                            println!("Found password and ends_with argument don't match-up");
+                            println!("Found password: {}", data.found_password_prefix);
+                            println!("ends_with: {}", args.ends_with);
+                            println!("Ending execution...");
+                            return;
+                        }
+                    }
+                }
+            }
+
             // If password length is satisfied then quit.
             let prefix_len = input_preparer.input_prefix.len();
             let postfix_len = input_preparer.input_postfix.len();
@@ -107,6 +142,7 @@ pub fn main_loop(args: Args) {
         }
     }
 
+    // Final results
     {
         let data = data.lock().unwrap();
         if !args.quiet {
