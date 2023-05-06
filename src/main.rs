@@ -108,11 +108,10 @@ pub fn main_loop(args: Args) {
             }
 
             if args.ends_with != "" {
-                let end_start_idx = args.length - args.ends_with.len()-1;
+                let end_start_idx = args.length - args.ends_with.len();
                 if data.found_password_prefix.len() > end_start_idx {
                     let postfix = &data.found_password_prefix[end_start_idx..];
                     let ends_with = &args.ends_with[..postfix.len()];
-                    println!("DEBUG: {} {}", postfix, ends_with);
                     if postfix != ends_with {
                         if !args.quiet {
                             println!("Found password and ends_with argument don't match-up");
@@ -126,11 +125,7 @@ pub fn main_loop(args: Args) {
             }
 
             // If password length is satisfied then quit.
-            let prefix_len = input_preparer.input_prefix.len();
-            let postfix_len = input_preparer.input_postfix.len();
-            let input_len = prefix_len + data.found_password_prefix.len() +
-                postfix_len;
-            if input_len == input_preparer.length {
+            if data.found_password_prefix.len() == input_preparer.length {
                 break;
             }
             data.processed_chars = Vec::new();

@@ -3,19 +3,21 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
-    /// String the input starts start with.
+    /// String the input starts with. It's length is not a part of the --length length.
     #[arg(long, default_value = "")]
     pub input_beg: String,
 
-    /// String the input ends start with.
+    /// String the input ends with. It's length is not a part of the --length length.
     #[arg(long, default_value = "")]
     pub input_end: String,
 
     /// String the password should start with. If it doesn't then execution is aborted.
+    /// It checks the password found, it doesn't take into account what's inside of --input-beg.
     #[arg(long, default_value = "")]
     pub starts_with: String,
 
     /// String the password should end with. If it doesn't then execution is aborted.
+    /// It checks the password found, it doesn't take into account what's inside of --input-beg.
     #[arg(long, default_value = "")]
     pub ends_with: String,
 

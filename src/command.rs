@@ -93,10 +93,8 @@ impl InputPreparer {
     }
 
     pub fn prepare(&self, password_prefix: &String) -> String {
-        let substract = self.input_postfix.len() + self.input_prefix.len() +
-            password_prefix.len();
-        if self.length >= substract {
-            let padding_len = self.length - substract;
+        if self.length >= password_prefix.len() {
+            let padding_len = self.length - password_prefix.len();
             let padding = self.padding_char.to_string().repeat(padding_len);
             self.input_prefix.clone() + password_prefix + &padding + &self.input_postfix
         } else {

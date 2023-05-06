@@ -30,11 +30,7 @@ pub fn thread_worker(
         {
 
             let mut data = data.lock().unwrap();
-            let prefix_len = input_preparer.input_prefix.len();
-            let postfix_len = input_preparer.input_postfix.len();
-            let input_len = prefix_len + data.found_password_prefix.len() +
-                postfix_len;
-            if input_len == input_preparer.length {
+            if data.found_password_prefix.len() == input_preparer.length {
                 return;
             }
             popped_char = data.chars_to_process.pop();
