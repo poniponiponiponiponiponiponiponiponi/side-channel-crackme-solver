@@ -3,6 +3,10 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
+    /// Event to use in perf. To list all possible perf events use `perf list`.
+    #[arg(short, long, default_value = "instructions")]
+    pub event: String,
+
     /// String the input starts with. It's length is not a part of the --length length.
     #[arg(long, default_value = "")]
     pub input_beg: String,
@@ -22,7 +26,7 @@ pub struct Args {
     pub ends_with: String,
 
     /// String that represents the alphabet used in the bruteforcing process.
-    /// If none is set then every character in the range 0-0xff inclusive is used.
+    /// If none is set then every printable character is used.
     #[arg(long, default_value = "")]
     pub alphabet: String,
 
@@ -52,6 +56,6 @@ pub struct Args {
     pub length: usize,
 
     /// Character used for padding so the char has the correct length.
-    #[arg(long, default_value_t = 'A')]
+    #[arg(long, default_value_t = '#')]
     pub padding: char,
 }

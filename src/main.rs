@@ -52,7 +52,7 @@ pub fn main_loop(args: Args) {
     );
     let prepared_command = PreparedCommand::new(
         &args.exe_path,
-        &"instructions".to_string(),
+        &args.event,
         args.iterations,
         args.stdin
     );
