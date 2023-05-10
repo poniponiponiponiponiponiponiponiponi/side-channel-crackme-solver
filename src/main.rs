@@ -3,6 +3,7 @@ use std::thread;
 use std::time;
 use std::sync::{Arc, Mutex};
 use std::path::Path;
+use which;
 use side_channel_crackme_solver::workers;
 use side_channel_crackme_solver::workers::ThreadsData;
 use side_channel_crackme_solver::args::Args;
@@ -12,6 +13,16 @@ use env_logger;
 
 fn main() {
     let mut args = Args::parse();
+
+    if !Path::new(&args.exe_path).is_file() {
+        println!("File does not exists: {}", args.exe_path);
+        return;
+    }
+
+    if !which::which("perf").is_ok() {
+        println!("Can't find perf binary in your $PATH. Exiting...");
+        return;
+    }
 
     // Logging turned on by default cuz usually
     // I want to actually see what the program is doing
@@ -32,11 +43,6 @@ fn main() {
         args.threads = thread::available_parallelism().unwrap().get();
         info!("No number of threads given. Use the detected recommended number instead: {}",
               args.threads);
-    }
-
-    if !Path::new(&args.exe_path).is_file() {
-        println!("File does not exists: {}", args.exe_path);
-        return;
     }
 
     info!("Starting solver...");
