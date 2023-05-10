@@ -3,6 +3,7 @@ use std::thread;
 use std::time;
 use std::sync::{Arc, Mutex};
 use std::path::Path;
+use std::error::Error;
 use which;
 use side_channel_crackme_solver::workers;
 use side_channel_crackme_solver::workers::ThreadsData;
@@ -11,17 +12,15 @@ use side_channel_crackme_solver::command::{PreparedCommand, InputPreparer};
 use log::info;
 use env_logger;
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     let mut args = Args::parse();
 
     if !Path::new(&args.exe_path).is_file() {
-        println!("File does not exists: {}", args.exe_path);
-        return;
+        return Err(format!("File does not exist: {}", args.exe_path).into());
     }
 
     if !which::which("perf").is_ok() {
-        println!("Can't find perf binary in your $PATH. Exiting...");
-        return;
+        return Err("Can't find perf binary in your $PATH".into());
     }
 
     // Logging turned on by default cuz usually
@@ -36,17 +35,19 @@ fn main() {
         for i in 1..0x80 {
             args.alphabet.push(i as u8 as char);
         }
-        info!("No alphabet given. Use the default one: ascii values from 0x01 to 0x7f.");
+        info!("No alphabet given. Using the default one: ascii values from 0x01 to 0x7f.");
     }
     
     if args.threads == 0 {
         args.threads = thread::available_parallelism().unwrap().get();
-        info!("No number of threads given. Use the detected recommended number instead: {}",
+        info!("No number of threads given. Using the detected recommended number instead: {}",
               args.threads);
     }
 
     info!("Starting solver...");
     main_loop(args);
+
+    Ok(())
 }
 
 pub fn main_loop(args: Args) {
