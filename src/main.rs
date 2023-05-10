@@ -2,6 +2,7 @@ use clap::Parser;
 use std::thread;
 use std::time;
 use std::sync::{Arc, Mutex};
+use std::path::Path;
 use side_channel_crackme_solver::workers;
 use side_channel_crackme_solver::workers::ThreadsData;
 use side_channel_crackme_solver::args::Args;
@@ -19,7 +20,6 @@ fn main() {
             .filter_or(env_logger::DEFAULT_FILTER_ENV, "info");
         env_logger::init_from_env(default);
     }
-    info!("Starting solver...");
 
     if args.alphabet == "" {
         for i in 1..0x80 {
@@ -34,6 +34,12 @@ fn main() {
               args.threads);
     }
 
+    if !Path::new(&args.exe_path).is_file() {
+        println!("File does not exists: {}", args.exe_path);
+        return;
+    }
+
+    info!("Starting solver...");
     main_loop(args);
 }
 
