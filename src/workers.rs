@@ -10,6 +10,12 @@ pub struct ThreadsData {
     pub found_password_prefix: String,
 }
 
+impl Default for ThreadsData {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ThreadsData {
     pub fn new() -> ThreadsData {
         ThreadsData {

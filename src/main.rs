@@ -4,13 +4,11 @@ use std::time;
 use std::sync::{Arc, Mutex};
 use std::path::Path;
 use std::error::Error;
-use which;
 use side_channel_crackme_solver::workers;
 use side_channel_crackme_solver::workers::ThreadsData;
 use side_channel_crackme_solver::args::Args;
 use side_channel_crackme_solver::command::{PreparedCommand, InputPreparer};
 use log::info;
-use env_logger;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut args = Args::parse();
@@ -19,7 +17,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         return Err(format!("File does not exist: {}", args.exe_path).into());
     }
 
-    if !which::which("perf").is_ok() {
+    if which::which("perf").is_err() {
         return Err("Can't find perf binary in your $PATH".into());
     }
 
@@ -31,7 +29,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         env_logger::init_from_env(default);
     }
 
-    if args.alphabet == "" {
+    if args.alphabet.is_empty() {
         for i in 1..0x80 {
             args.alphabet.push(i as u8 as char);
         }
@@ -104,35 +102,32 @@ pub fn main_loop(args: Args) {
             data.found_password_prefix.push(char);
 
             // Confirm starts_with and ends_with
-            if args.starts_with != "" {
+            if !args.starts_with.is_empty() {
                 let compare_to = std::cmp::min(
                     data.found_password_prefix.len(),
                     args.starts_with.len()
                     );
-                if &data.found_password_prefix[..compare_to] != &args.starts_with[..compare_to] {
-                    if !args.quiet {
-                        println!("Found password and starts_with argument don't match-up");
-                        println!("Found password: {}", data.found_password_prefix);
-                        println!("starts_with: {}", args.starts_with);
-                        println!("Ending execution...");
-                        return;
-                    }
+                if data.found_password_prefix[..compare_to] != args.starts_with[..compare_to] &&
+                        !args.quiet {
+                    println!("Found password and starts_with argument don't match-up");
+                    println!("Found password: {}", data.found_password_prefix);
+                    println!("starts_with: {}", args.starts_with);
+                    println!("Ending execution...");
+                    return;
                 }
             }
 
-            if args.ends_with != "" {
+            if !args.ends_with.is_empty() {
                 let end_start_idx = args.length - args.ends_with.len();
                 if data.found_password_prefix.len() > end_start_idx {
                     let postfix = &data.found_password_prefix[end_start_idx..];
                     let ends_with = &args.ends_with[..postfix.len()];
-                    if postfix != ends_with {
-                        if !args.quiet {
-                            println!("Found password and ends_with argument don't match-up");
-                            println!("Found password: {}", data.found_password_prefix);
-                            println!("ends_with: {}", args.ends_with);
-                            println!("Ending execution...");
-                            return;
-                        }
+                    if postfix != ends_with && !args.quiet {
+                        println!("Found password and ends_with argument don't match-up");
+                        println!("Found password: {}", data.found_password_prefix);
+                        println!("ends_with: {}", args.ends_with);
+                        println!("Ending execution...");
+                        return;
                     }
                 }
             }
@@ -141,6 +136,7 @@ pub fn main_loop(args: Args) {
             if data.found_password_prefix.len() == input_preparer.length {
                 break;
             }
+
             data.processed_chars = Vec::new();
             data.chars_to_process = args.alphabet.chars().collect();
 

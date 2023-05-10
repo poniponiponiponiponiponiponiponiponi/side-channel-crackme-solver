@@ -39,11 +39,11 @@ impl PreparedCommand {
         }
     }
 
-    fn get_cmd_split(&self, input: &String) -> Vec<String> {
+    fn get_cmd_split(&self, input: &str) -> Vec<String> {
         let mut split: Vec<String> = Vec::new();
         self.command_prefix.iter().for_each(|s| split.push(s.to_string()));
         if self.stdin {
-            split.push(input.clone());
+            split.push(input.to_owned());
         }
         self.command_postfix.iter().for_each(|s| split.push(s.to_string()));
         split
@@ -103,6 +103,6 @@ impl InputPreparer {
     }
 }
 
-pub fn parse_output(output: &String) -> i128 {
-    output.split(",").nth(0).unwrap().parse().unwrap()
+pub fn parse_output(output: &str) -> i128 {
+    output.split(',').next().unwrap().parse().unwrap()
 }
