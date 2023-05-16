@@ -1,15 +1,16 @@
 use clap::Parser;
-use std::thread;
-use std::time;
-use std::sync::{Arc, Mutex};
-use std::path::Path;
-use std::error::Error;
-use side_channel_crackme_solver::workers;
-use side_channel_crackme_solver::workers::ThreadsData;
+use log::info;
 use side_channel_crackme_solver::args::Args;
 use side_channel_crackme_solver::command::{PreparedCommand, InputPreparer};
 use side_channel_crackme_solver::misc;
-use log::info;
+use side_channel_crackme_solver::workers::ThreadsData;
+use side_channel_crackme_solver::workers;
+use std::error::Error;
+use std::path::Path;
+use std::process;
+use std::sync::{Arc, Mutex};
+use std::thread;
+use std::time;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut args = Args::parse();
@@ -31,9 +32,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     if args.alphabet.is_empty() {
-        for i in 1..0x80 {
-            args.alphabet.push(i as u8 as char);
-        }
+        args.alphabet = (1..0x80).map(|n| char::from(n)).collect();
         info!("No alphabet given. Using the default one: ascii values from 0x01 to 0x7f.");
     }
     
@@ -49,12 +48,12 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 pub fn main_loop(mut args: Args) {
-    let mut thread_workers = vec![];
     let data = Arc::new(Mutex::new(ThreadsData::new()));
     {
         let mut data = data.lock().unwrap();
         data.chars_to_process = args.alphabet.chars().collect();
     }
+
     let mut input_preparer = InputPreparer::new(
         args.input_beg.clone(),
         args.input_end.clone(),
@@ -76,6 +75,7 @@ pub fn main_loop(mut args: Args) {
     }
 
     info!("Starting solver...");
+    let mut thread_workers = vec![];
     for _ in 0..args.threads {
         let data = Arc::clone(&data);
         let prepared_command = prepared_command.clone();
@@ -102,54 +102,10 @@ pub fn main_loop(mut args: Args) {
             }
         }
 
-        // Process the found chars
         {
             let mut data = data.lock().unwrap();
-            data.processed_chars.sort();
-            let &(_, char) = data.processed_chars.last().unwrap();
-            data.found_password_prefix.push(char);
-
-            // Confirm starts_with and ends_with
-            if !args.starts_with.is_empty() {
-                let compare_to = std::cmp::min(
-                    data.found_password_prefix.len(),
-                    args.starts_with.len()
-                    );
-                if data.found_password_prefix[..compare_to] != args.starts_with[..compare_to] &&
-                        !args.quiet {
-                    println!("Found password and starts_with argument don't match-up");
-                    println!("Found password: {}", data.found_password_prefix);
-                    println!("starts_with: {}", args.starts_with);
-                    println!("Ending execution...");
-                    return;
-                }
-            }
-
-            if !args.ends_with.is_empty() {
-                let end_start_idx = args.length - args.ends_with.len();
-                if data.found_password_prefix.len() > end_start_idx {
-                    let postfix = &data.found_password_prefix[end_start_idx..];
-                    let ends_with = &args.ends_with[..postfix.len()];
-                    if postfix != ends_with && !args.quiet {
-                        println!("Found password and ends_with argument don't match-up");
-                        println!("Found password: {}", data.found_password_prefix);
-                        println!("ends_with: {}", args.ends_with);
-                        println!("Ending execution...");
-                        return;
-                    }
-                }
-            }
-
-            // If password length is satisfied then quit.
-            if data.found_password_prefix.len() == input_preparer.length {
+            if process_found_chars(&args, &mut data) {
                 break;
-            }
-
-            data.processed_chars = Vec::new();
-            data.chars_to_process = args.alphabet.chars().collect();
-
-            if !args.quiet {
-                info!("Currently found password: {}", data.found_password_prefix);
             }
         }
     }
@@ -166,4 +122,55 @@ pub fn main_loop(mut args: Args) {
     for thread in thread_workers {
         thread.join().unwrap();
     }
+}
+
+fn process_found_chars(args: &Args, data: &mut ThreadsData) -> bool {
+    data.processed_chars.sort();
+    let &(_, char) = data.processed_chars.last().unwrap();
+    data.found_password_prefix.push(char);
+
+    // Confirm starts_with and ends_with
+    if !args.starts_with.is_empty() {
+        let compare_to = std::cmp::min(
+            data.found_password_prefix.len(),
+            args.starts_with.len()
+        );
+        if data.found_password_prefix[..compare_to] != args.starts_with[..compare_to] &&
+                !args.quiet {
+            println!("Found password and starts_with argument don't match-up");
+            println!("Found password: {}", data.found_password_prefix);
+            println!("starts_with: {}", args.starts_with);
+            println!("Ending execution...");
+            process::exit(-1);
+        }
+    }
+
+    if !args.ends_with.is_empty() {
+        let end_start_idx = args.length - args.ends_with.len();
+        if data.found_password_prefix.len() > end_start_idx {
+            let postfix = &data.found_password_prefix[end_start_idx..];
+            let ends_with = &args.ends_with[..postfix.len()];
+            if postfix != ends_with && !args.quiet {
+                println!("Found password and ends_with argument don't match-up");
+                println!("Found password: {}", data.found_password_prefix);
+                println!("ends_with: {}", args.ends_with);
+                println!("Ending execution...");
+                process::exit(-1);
+            }
+        }
+    }
+
+    // If password length is satisfied then quit.
+    if data.found_password_prefix.len() == args.length {
+        return true;
+    }
+
+    data.processed_chars = Vec::new();
+    data.chars_to_process = args.alphabet.chars().collect();
+
+    if !args.quiet {
+        info!("Currently found password: {}", data.found_password_prefix);
+    }
+
+    false
 }

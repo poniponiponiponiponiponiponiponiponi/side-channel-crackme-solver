@@ -1,4 +1,5 @@
 use clap::Parser;
+
 /// Solver for simple crackmes using side channel attacks.
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
