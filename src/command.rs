@@ -97,6 +97,8 @@ impl InputPreparer {
             let padding_len = self.length - password_prefix.len();
             let padding = self.padding_char.to_string().repeat(padding_len);
             self.input_prefix.clone() + password_prefix + &padding + &self.input_postfix
+        } else if self.length == 0 {
+            self.input_prefix.clone() + password_prefix + &self.input_postfix
         } else {
             panic!("too long?");
         }

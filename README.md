@@ -53,5 +53,5 @@ int main() {
 
 To run the program on this crackme run:
 ```
-cargo run -- --input-end $'\n' -l 16 ./a.out
+cargo run -- --input-end $'\n' ./a.out
 ```

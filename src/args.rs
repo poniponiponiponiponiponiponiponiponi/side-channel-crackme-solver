@@ -31,6 +31,7 @@ pub struct Args {
     pub alphabet: String,
 
     /// Number of worker threads (so the actual number of threads is threads+1).
+    /// If set to zero the program will determinate the best number automatically.
     #[arg(short, long, default_value_t = 0)]
     pub threads: usize,
 
@@ -54,6 +55,10 @@ pub struct Args {
     /// try to find it first instead.
     #[arg(short, long, default_value_t = 0)]
     pub length: usize,
+
+    /// Max length of searched password. Used while trying to determinate the length.
+    #[arg(long, default_value_t = 50)]
+    pub max_length: usize,
 
     /// Character used for padding so the char has the correct length.
     #[arg(long, default_value_t = '#')]

@@ -8,6 +8,7 @@ use side_channel_crackme_solver::workers;
 use side_channel_crackme_solver::workers::ThreadsData;
 use side_channel_crackme_solver::args::Args;
 use side_channel_crackme_solver::command::{PreparedCommand, InputPreparer};
+use side_channel_crackme_solver::misc;
 use log::info;
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -41,21 +42,20 @@ fn main() -> Result<(), Box<dyn Error>> {
         info!("No number of threads given. Using the detected recommended number instead: {}",
               args.threads);
     }
-
-    info!("Starting solver...");
+    
     main_loop(args);
 
     Ok(())
 }
 
-pub fn main_loop(args: Args) {
+pub fn main_loop(mut args: Args) {
     let mut thread_workers = vec![];
     let data = Arc::new(Mutex::new(ThreadsData::new()));
     {
         let mut data = data.lock().unwrap();
         data.chars_to_process = args.alphabet.chars().collect();
     }
-    let input_preparer = InputPreparer::new(
+    let mut input_preparer = InputPreparer::new(
         args.input_beg.clone(),
         args.input_end.clone(),
         args.length,
@@ -67,6 +67,15 @@ pub fn main_loop(args: Args) {
         args.iterations,
         args.stdin
     );
+
+    if args.length == 0 {
+        info!("No length found. Searching for length...");
+        args.length = misc::find_length(args.max_length, &input_preparer, &prepared_command);
+        input_preparer.length = args.length;
+        info!("Found length: {}. Proceed with caution, the length might be wrong.", args.length);
+    }
+
+    info!("Starting solver...");
     for _ in 0..args.threads {
         let data = Arc::clone(&data);
         let prepared_command = prepared_command.clone();
@@ -86,8 +95,7 @@ pub fn main_loop(args: Args) {
             }
 
             if chars_left > 0 {
-                info!("Number of chars left in the queue: {}", chars_left);
-                thread::sleep(time::Duration::from_millis(250));
+                thread::sleep(time::Duration::from_millis(100));
                 continue;
             } else {
                 break;
@@ -141,7 +149,7 @@ pub fn main_loop(args: Args) {
             data.chars_to_process = args.alphabet.chars().collect();
 
             if !args.quiet {
-                println!("Currently found password: {}", data.found_password_prefix);
+                info!("Currently found password: {}", data.found_password_prefix);
             }
         }
     }
