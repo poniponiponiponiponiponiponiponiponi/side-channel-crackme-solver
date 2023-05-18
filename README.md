@@ -23,7 +23,7 @@ The program uses `perf` underneath, so make sure you have it installed and worki
 
 int main() {
     char flag[] = "flag{PLEASEWORK}";
-    char *line;
+    char *line = NULL;
     size_t len;
     size_t ret = getline(&line, &len, stdin);
     line[strcspn(line, "\n")] = '\0';
@@ -33,13 +33,13 @@ int main() {
     }
 
     // Simulate a bunch of instruction decrypting the flag/character
-    for (int i = 0; i < 100000; ++i)
+    for (int i = 0; i < 3000; ++i)
         ;
 
     for (size_t i = 0; i < strlen(flag); ++i) {
         if (line[i] == flag[i]) {
             // Simulate a bunch of instruction decrypting the flag/character
-            for (int j = 0; j < 100000; ++j)
+            for (int j = 0; j < 3000; ++j) 
                 ;
         } else {
             return -2;
