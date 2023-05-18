@@ -63,7 +63,7 @@ pub fn main_loop(mut args: Args) {
         );
         let prepared_command = PreparedCommand::new(
             &args.exe_path,
-            "iterations",
+            "instructions",
             args.iterations,
             args.stdin
         );
