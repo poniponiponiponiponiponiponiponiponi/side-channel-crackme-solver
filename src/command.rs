@@ -18,8 +18,8 @@ pub struct InputPreparer {
 
 impl PreparedCommand {
     pub fn new(
-            program_path: &String,
-            method: &String,
+            program_path: &str,
+            method: &str,
             iterations: u32,
             stdin: bool,
             ) -> PreparedCommand {
@@ -49,7 +49,7 @@ impl PreparedCommand {
         split
     }
 
-    pub fn run(&self, input: &String) -> String {
+    pub fn run(&self, input: &str) -> String {
         let split = self.get_cmd_split(input);
 
         let mut perf_command;

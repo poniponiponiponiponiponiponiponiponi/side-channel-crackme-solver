@@ -54,7 +54,27 @@ pub fn main_loop(mut args: Args) {
         data.chars_to_process = args.alphabet.chars().collect();
     }
 
-    let mut input_preparer = InputPreparer::new(
+    if args.length == 0 {
+        let input_preparer = InputPreparer::new(
+            args.input_beg.clone(),
+            args.input_end.clone(),
+            args.length,
+            args.padding,
+        );
+        let prepared_command = PreparedCommand::new(
+            &args.exe_path,
+            "iterations",
+            args.iterations,
+            args.stdin
+        );
+
+        info!("No length found. Searching for length...");
+        args.length = misc::find_length(args.max_length, &input_preparer, &prepared_command);
+        info!("Found length: {}. Proceed with caution, the length might be wrong.", args.length);
+    }
+
+    info!("Starting solver...");
+    let input_preparer = InputPreparer::new(
         args.input_beg.clone(),
         args.input_end.clone(),
         args.length,
@@ -66,15 +86,6 @@ pub fn main_loop(mut args: Args) {
         args.iterations,
         args.stdin
     );
-
-    if args.length == 0 {
-        info!("No length found. Searching for length...");
-        args.length = misc::find_length(args.max_length, &input_preparer, &prepared_command);
-        input_preparer.length = args.length;
-        info!("Found length: {}. Proceed with caution, the length might be wrong.", args.length);
-    }
-
-    info!("Starting solver...");
     let mut thread_workers = vec![];
     for _ in 0..args.threads {
         let data = Arc::clone(&data);
